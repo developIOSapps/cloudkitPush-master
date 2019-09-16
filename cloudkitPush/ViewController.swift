@@ -10,7 +10,9 @@ import UIKit
 import UserNotifications
 
 class ViewController: UIViewController {
-
+    
+    @IBOutlet weak var studentPicImageView: UIImageView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -23,7 +25,9 @@ class ViewController: UIViewController {
 
 }
 
-extension ViewController: UNUserNotificationCenterDelegate{
+extension ViewController: UNUserNotificationCenterDelegate {
+    
+    
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         
         let application = UIApplication.shared
@@ -31,6 +35,12 @@ extension ViewController: UNUserNotificationCenterDelegate{
         if(application.applicationState == .active){
             print("1  app received notification while in foreground")
         }
+
+        let body = notification.request.content.body
+        //let body = response.notification.request.content.body
+        
+        print("1 this is the content of the notification \(body)")
+        studentPicImageView.image = UIImage(named: body)
         
         // show the notification alert (banner), and with sound
         // completionHandler([.alert, .sound])
@@ -38,7 +48,9 @@ extension ViewController: UNUserNotificationCenterDelegate{
 
     }
     
+    
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    
         let application = UIApplication.shared
         
         if(application.applicationState == .active){
@@ -47,7 +59,7 @@ extension ViewController: UNUserNotificationCenterDelegate{
         
         if(application.applicationState == .inactive)
         {
-            print("user tapped the notification bar when the app is in background")
+            print("2 user tapped the notification bar when the app is in background")
         }
         
         let body = response.notification.request.content.body

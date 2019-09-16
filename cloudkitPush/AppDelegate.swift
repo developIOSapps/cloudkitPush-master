@@ -15,107 +15,95 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
         
-        // let AppDelegate handle push notification
-        // UNUserNotificationCenter.current().delegate = self
+
         UNUserNotificationCenter.current().delegate = self.window?.rootViewController as! ViewController
         
-        // Ask user permission for sending push notification
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound], completionHandler: { authorized, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { authorized, error in
             if authorized {
-                DispatchQueue.main.async(execute: {
-                    application.registerForRemoteNotifications()
-                })
+                DispatchQueue.main.async(execute: { application.registerForRemoteNotifications() })
             }
-        })
+        }
         
         // When the app launch after user tap on notification (originally was not running / not in background)
         if(launchOptions?[UIApplicationLaunchOptionsKey.remoteNotification] != nil){
-            
+            print("* * * * *  In the if UIApplicationLaunchOptionsKey")
         }
         
         return true
+        
     }
-
-    // When user allowed push notification and the app has gotten the device token
-    // (device token is a unique ID that Apple server use to determine which device to send push notification to)
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         
-        // Create a subscription to the 'Notifications' Record Type in CloudKit
-        // User will receive a push notification when a new record is created in CloudKit
-        // Read more on https://developer.apple.com/library/archive/documentation/DataManagement/Conceptual/CloudKitQuickStart/SubscribingtoRecordChanges/SubscribingtoRecordChanges.html
+        deleteSubscriptions()
         
-        // The predicate lets you define condition of the subscription, eg: only be notified of change if the newly created notification start with "A"
-        // the TRUEPREDICATE means any new Notifications record created will be notified
-//        let subscription = CKQuerySubscription(recordType: "Notifications", predicate: NSPredicate(format: "TRUEPREDICATE"), options: .firesOnRecordCreation)
-        let subscription = CKQuerySubscription(recordType: "Notifications", predicate: NSPredicate(format: "title = 'st01'"), options: .firesOnRecordCreation)
-
-        // Here we customize the notification message
-        let info = CKNotificationInfo()
-        
-        // this will use the 'title' field in the Record type 'notifications' as the title of the push notification
-        info.titleLocalizationKey = "%1$@"
-        info.titleLocalizationArgs = ["title"]
-        
-        // if you want to use multiple field combined for the title of push notification
-        // info.titleLocalizationKey = "%1$@ %2$@" // if want to add more, the format will be "%3$@" and so on
-        // info.titleLocalizationArgs = ["title", "subtitle"]
-        
-        // this will use the 'content' field in the Record type 'notifications' as the content of the push notification
-        info.alertLocalizationKey = "%1$@"
-        info.alertLocalizationArgs = ["content"]
-        
-        // increment the red number count on the top right corner of app icon
-        info.shouldBadge = true
-        
-        // use system default notification sound
-        info.soundName = "default"
-
-        
-        subscription.notificationInfo = info
-        
-        
-        
-        
-        // Save the subscription to Public Database in Cloudkit
-//        CKContainer.default().publicCloudDatabase.save(subscription, completionHandler: { subscription, error in
-
-        CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.save(subscription, completionHandler: { subscription, error in
-            if error == nil {
-                print(" Subscription saved successfully")
-            } else {
-                print("error saving subscription", error?.localizedDescription)
-            }
-        })
-        getLoginNotification()
     }
+
     
-    func getLoginNotification() {
+    fileprivate func registerNotificationNotification() {
+        //      let subscription = CKQuerySubscription(recordType: "Notifications", predicate: NSPredicate(format: "title = 'st01'"), options: .firesOnRecordCreation)
+        let subscription = CKQuerySubscription(recordType: "Notifications", predicate: NSPredicate(format: "TRUEPREDICATE"), options: [.firesOnRecordCreation, .firesOnRecordDeletion] )
+        
+        let notificationInfoWithAlert: CKNotificationInfo = {
+            let notificationInfoWithAlert = CKNotificationInfo()
+            notificationInfoWithAlert.titleLocalizationKey = "%1$@"
+            notificationInfoWithAlert.titleLocalizationArgs = ["title"]
+            notificationInfoWithAlert.alertLocalizationKey = "%1$@"
+            notificationInfoWithAlert.alertLocalizationArgs = ["content"]
+            notificationInfoWithAlert.shouldBadge = true
+            notificationInfoWithAlert.soundName = "default"
+            return notificationInfoWithAlert
+        }()
+        
+        let notificationInfoSilent: CKNotificationInfo = {
+            let notificationInfoSilent = CKNotificationInfo()
+            notificationInfoSilent.shouldSendContentAvailable = true
+            return notificationInfoSilent
+        }()
+        
+        
+        subscription.notificationInfo = notificationInfoSilent
+        
+        
+        //     CKContainer.default().publicCloudDatabase.save(subscription, completionHandler: { subscription, error in
+        
+        CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.save(subscription, completionHandler: { subscription, error in
+            if error == nil
+            { print(" Subscription saved successfully") }
+            else
+            { print("error saving subscription", error?.localizedDescription) }
+        }
+        )
+    }
+    fileprivate func registerLoginNotification() {
+        
         let subscription = CKQuerySubscription(recordType: "Logins", predicate: NSPredicate(format: "TRUEPREDICATE"), options: .firesOnRecordCreation)
         
-        // Here we customize the notification message
-        let info = CKNotificationInfo()
+        let notificationInfoWithAlert = CKNotificationInfo()
         
         // this will use the 'title' field in the Record type 'notifications' as the title of the push notification
-        info.titleLocalizationKey = "%1$@"
-        info.titleLocalizationArgs = ["student"]
+//        info.titleLocalizationKey = "%1$@"
+//        info.titleLocalizationArgs = ["student"]
         
         // if you want to use multiple field combined for the title of push notification
         // info.titleLocalizationKey = "%1$@ %2$@" // if want to add more, the format will be "%3$@" and so on
         // info.titleLocalizationArgs = ["title", "subtitle"]
         
         // this will use the 'content' field in the Record type 'notifications' as the content of the push notification
-        info.alertLocalizationKey = "%1$@"
-        info.alertLocalizationArgs = ["iPadID"]
+        notificationInfoWithAlert.alertLocalizationKey = "%1$@"
+        notificationInfoWithAlert.alertLocalizationArgs = ["student"]
         
         // use system default notification sound
-        info.soundName = "default"
+        notificationInfoWithAlert.soundName = "default"
+        notificationInfoWithAlert.shouldSendMutableContent = true
         
-        
-        subscription.notificationInfo = info
+        let inf = CKNotificationInfo()
+        inf.shouldSendMutableContent = true
+        inf.shouldSendContentAvailable = true
+        subscription.notificationInfo = inf
         
         
         CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.save(subscription, completionHandler: { subscription, error in
@@ -126,38 +114,72 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         })
     }
+    
+    func deleteSubscriptions() {
+        
+        let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
+        
+        DispatchQueue.global().sync {
+            db.fetchAllSubscriptions { [unowned self] subscriptions, error in
+                if error == nil {
+                    if let subscriptions = subscriptions {
+                        for subscription in subscriptions {
+                            db.delete(withSubscriptionID: subscription.subscriptionID) { str, error in
+                                if error != nil {
+                                    // do your error handling here!
+                                    print(error!.localizedDescription)
+                                    fatalError("error deleting subscriptions")
+                                } else {
+                                    print("deleted subscription")
+                                }
+                            }
+                        }
+                        
+                        self.registerNotificationNotification()
+                        self.registerLoginNotification()
+                        
+                    }
+                } else {
+                    // do your error handling here!
+                    print(error!.localizedDescription)
+                }
+
+        }
+         }
+    }
+    
 }
 
 
 extension AppDelegate: UNUserNotificationCenterDelegate{
-    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        
-        let application = UIApplication.shared
-        
-        if(application.applicationState == .active){
-            print("app received notification while in foreground")
-        }
-        
-        // show the notification alert (banner), and with sound
-        completionHandler([.alert, .sound])
-    }
-    
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        let application = UIApplication.shared
-        
-        if(application.applicationState == .active){
-            print("user tapped the notification bar when the app is in foreground")
-        }
-        
-        if(application.applicationState == .inactive)
-        {
-            print("user tapped the notification bar when the app is in background")
-        }
-        
-        // tell the app that we have finished processing the user’s action / response
-        completionHandler()
-    }
-    
+//    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+//        
+//        let application = UIApplication.shared
+//        
+//        if(application.applicationState == .active){
+//            print("app received notification while in foreground")
+//        }
+//        
+//        // show the notification alert (banner), and with sound
+//        completionHandler([.alert, .sound])
+//    }
+//    
+//    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+//        let application = UIApplication.shared
+//        
+//        if(application.applicationState == .active){
+//            print("user tapped the notification bar when the app is in foreground")
+//        }
+//        
+//        if(application.applicationState == .inactive)
+//        {
+//            print("user tapped the notification bar when the app is in background")
+//        }
+//        
+//        // tell the app that we have finished processing the user’s action / response
+//        completionHandler()
+//    }
+//    
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
@@ -178,6 +200,50 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
     
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        
+        print("* * * * * didReceiveRemoteNotification - We received a remote notification")
+        
+        if let ckDict = userInfo["ck"] as? [AnyHashable : Any] {
+            if let qryDict = ckDict["qry"] as? [AnyHashable : Any] {
+                for (key, value) in qryDict {
+                    print(key as! NSString)
+                    if let item = value as? NSNumber {
+                        print(item)
+                    }
+                    if let item = value as? NSString {
+                        print(item)
+                    }
+                }
+                //            if let alert = ["alert"] as? NSDictionary {
+                //                if let message = alert["message"] as? NSString {
+                //                    //Do stuff
+                //                }
+                //            } else if let alert = aps["alert"] as? NSString {
+                //                //Do stuff
+                //            }
+            }
+        }
+        
+        dump(userInfo)
+        
+        
+        guard let _ = CKNotification(fromRemoteNotificationDictionary: userInfo) as? CKDatabaseNotification else { return }
+        
+        completionHandler(.newData)
+        
+        
+        
+//        appData.checkUpdates(finishClosure: { (result) in
+//            let mainQueue = OperationQueue.main
+//            mainQueue.addOperation({
+//                completionHandler(result)
+//            })
+//        })
+//
+
     }
     
 
