@@ -13,8 +13,12 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var studentPicImageView: UIImageView!
     
+    @IBOutlet weak var titlelabel: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("in view did load")
+        titlelabel.text = "good bye"
         // Do any additional setup after loading the view, typically from a nib.
     }
 

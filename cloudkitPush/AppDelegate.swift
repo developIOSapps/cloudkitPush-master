@@ -18,6 +18,50 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
+        
+        
+        
+        /// Create an instance of the fetchNotificationChangesCompletionBlock class
+        let fetchNotificationChangesOperation = CKFetchNotificationChangesOperation(previousServerChangeToken: nil)
+        
+        /// set the notificationChangedBlock property
+        var recordChanges = [CKRecordID: CKQueryNotificationReason]()
+        fetchNotificationChangesOperation.notificationChangedBlock = { notification in
+            print("* * * we are in the notificationChangedBlock ")
+            let x = notification.subscriptionID
+            print("Subscription id is \(String(describing: x))" ,String(describing: x))
+            
+            guard let n = notification as? CKQueryNotification, let recordID = n.recordID  else { return  }
+            
+            recordChanges[recordID] = n.queryNotificationReason
+        }
+        
+        /// get the CKServerChangeToken
+        fetchNotificationChangesOperation.fetchNotificationChangesCompletionBlock = { (serverChangeToken, error) in
+             print("* * * we are in the fetchNotificationChangesCompletionBlock , and this is the change token \(serverChangeToken.debugDescription)")
+            print(recordChanges.debugDescription)
+            let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
+            for (key, value) in recordChanges {
+                db.fetch(withRecordID: key, completionHandler: { (record, error) in
+                    guard error == nil else {return}
+                    if value == .recordCreated {
+                        print(record?["title"] ?? "nothing")
+                        print(record?.allKeys() ?? "no keys")
+                        print(record?.allTokens() ?? "no tokens")
+                    } else {
+                        print("record not created")
+                    }
+                })
+            }
+        }
+        
+        
+        // CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").add(fetchNotificationChangesOperation)
+        
+        
+        
+
+        
         prepareForRemoteNotification(application, launchOptions)
         
         return true
@@ -70,6 +114,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                         }
                         
                         self.registerNotificationNotification()
+                        
+                        self.registeriPadNotification()
+                       
                         self.registerLoginNotification()
                         
                     }
@@ -83,9 +130,61 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     
+    fileprivate func registeriPadNotification() {
+    
+        /// Create a CKQuerySubscription object
+        let subscription: CKQuerySubscription = {
+            
+            let subscription = CKQuerySubscription(recordType: "iPad",
+                                                   predicate: NSPredicate(format: "TRUEPREDICATE"),
+                                                   options: [.firesOnRecordCreation, .firesOnRecordUpdate] )
+            
+            let notificationInfoSilent: CKNotificationInfo = {
+                let notificationInfoSilent = CKNotificationInfo()
+                notificationInfoSilent.shouldSendContentAvailable = true
+                return notificationInfoSilent
+            }()
+            
+            subscription.notificationInfo = notificationInfoSilent
+            
+            return subscription
+            
+        }()
+        
+        /// create a CKModifySubscriptionsOperation
+        let modifySubscriptionOperation: CKModifySubscriptionsOperation = {
+            let modifySubscriptionOperation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription],  subscriptionIDsToDelete: nil)
+            modifySubscriptionOperation.modifySubscriptionsCompletionBlock = { (savedSubscriptions, deletedSubscriptionsIDS, error) in
+                 // TODO: cache the subscriptions that were saved so it does not need to be recreated over
+                 if error != nil {
+                     print("* * * * There was an error creating subscription")
+                 }
+             }
+             modifySubscriptionOperation.qualityOfService = .utility
+            return modifySubscriptionOperation
+        }()
+        
+//        let modifySubscriptionOperation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription],
+//                                                                         subscriptionIDsToDelete: nil)
+//        modifySubscriptionOperation.modifySubscriptionsCompletionBlock = { (savedSubscriptions, deletedSubscriptionsIDS, error) in
+//            // TODO: cache the subscriptions that were saved so it does not need to be recreated over
+//            if error != nil {
+//                print("* * * * There was an error creating subscription")
+//            }
+//        }
+//
+//        modifySubscriptionOperation.qualityOfService = .utility
+        
+
+        CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.add(modifySubscriptionOperation)
+    }
+    
+
     fileprivate func registerNotificationNotification() {
         //      let subscription = CKQuerySubscription(recordType: "Notifications", predicate: NSPredicate(format: "title = 'st01'"), options: .firesOnRecordCreation)
-        let subscription = CKQuerySubscription(recordType: "Notifications", predicate: NSPredicate(format: "TRUEPREDICATE"), options: [.firesOnRecordCreation, .firesOnRecordDeletion] )
+        let subscription = CKQuerySubscription(recordType: "Notifications",
+                                               predicate: NSPredicate(format: "TRUEPREDICATE"),
+                                               options: [.firesOnRecordCreation, .firesOnRecordDeletion] )
         
         let notificationInfoWithAlert: CKNotificationInfo = {
             let notificationInfoWithAlert = CKNotificationInfo()
@@ -106,14 +205,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         subscription.notificationInfo = notificationInfoSilent
         
-        
-        CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.save(subscription, completionHandler: { subscription, error in
-            if error == nil
-            { print(" Subscription saved successfully") }
-            else
-            { print("error saving subscription", error?.localizedDescription) }
+        let modifySubscriptionOperation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription],
+                                                                         subscriptionIDsToDelete: nil)
+        modifySubscriptionOperation.modifySubscriptionsCompletionBlock = { (savedSubscriptions, deletedSubscriptionsIDS, error) in
+            // TODO: cache the subscriptions that were saved so it does not need to be recreated over
+            if error != nil {
+                print("* * * * There was an error creating subscription")
+            }
         }
-        )
+        
+        modifySubscriptionOperation.qualityOfService = .utility
+        let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
+        db.add(modifySubscriptionOperation)
+        
+        
+//        db.save(subscription, completionHandler: { subscription, error in
+//            if error == nil
+//            { print(" Subscription saved successfully") }
+//            else
+//            { print("error saving subscription", error?.localizedDescription) }
+//        }
+//        )
 
     }
     
@@ -161,14 +273,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 
 
-
 extension AppDelegate: UNUserNotificationCenterDelegate{
 
    
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         
         print("* * * * * didReceiveRemoteNotification - We received a remote notification")
-        
+
         if let ckDict = userInfo["ck"] as? [AnyHashable : Any] {
             if let qryDict = ckDict["qry"] as? [AnyHashable : Any] {
                 for (key, value) in qryDict {
@@ -183,10 +294,72 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
             }
         }
         dump(userInfo)
+//          NSLog("Save error: %@", "hello")
+
+
+        guard let queryNotif = CKNotification(fromRemoteNotificationDictionary: userInfo) as? CKQueryNotification else { return }
         
-        guard let _ = CKNotification(fromRemoteNotificationDictionary: userInfo) as? CKDatabaseNotification else { return }
+        print("Container Identifier: \(String(describing: queryNotif.containerIdentifier))") 
+        print("Record ID Name: \(queryNotif.recordID?.recordName)")
+        print("Record ID Name: \(queryNotif.recordID?.zoneID.zoneName)")
+        print("QueryNotificationReason: \(queryNotif.queryNotificationReason)")
         
-        completionHandler(.newData)
+        switch queryNotif.queryNotificationReason {
+        case .recordCreated:
+            print(" * * * Record Created")
+        case .recordDeleted:
+            print(" * * * Record Deleted")
+        case .recordUpdated:
+            print(" * * * Record Updated")
+        }
+        
+
+        dump(queryNotif.recordFields)
+
+        
+        dump(queryNotif)
+        
+        guard let recID =  queryNotif.recordID as? CKRecordID   else {
+            fatalError("Error - could not use the record id")
+        }
+        
+        CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.fetch(withRecordID: recID) { (record, error) in
+            guard let rec = record, error == nil else {fatalError("error - getting record")}
+            print(rec["title"] as! String)
+            
+            let titl = rec["title"] as! String
+            
+            DispatchQueue.main.async {
+                let vc = self.window?.rootViewController as! ViewController
+                vc.titlelabel.text = titl
+                vc.titlelabel.setNeedsDisplay()
+                vc.view.setNeedsDisplay()
+                vc.view.setNeedsLayout()
+                }
+        }
+        
+        
+        
+        
+//        let cloudKitNotification = CKNotification(fromRemoteNotificationDictionary: userInfo as! [String : NSObject])
+//        if cloudKitNotification.notificationType == .Query {
+//            let queryNotification = cloudKitNotification as! CKQueryNotification
+//            if queryNotification.queryNotificationReason == .RecordDeleted {
+//
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        DispatchQueue.global().async {
+            completionHandler(.noData)
+        }
+        
+        // completionHandler(.newData)
         
 //        appData.checkUpdates(finishClosure: { (result) in
 //            let mainQueue = OperationQueue.main

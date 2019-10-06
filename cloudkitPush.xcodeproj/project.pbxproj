@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		46935C0B2312C0D90042A779 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 46935C0A2312C0D90042A779 /* CloudKit.framework */; };
+		46E99973232FB4BC000090B5 /* ChangeNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E99972232FB4BC000090B5 /* ChangeNotifications.swift */; };
+		46E99976232FB854000090B5 /* CKContainer + Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E99975232FB854000090B5 /* CKContainer + Extension.swift */; };
 		715CA2CA215CE8F1004546D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715CA2C9215CE8F1004546D2 /* AppDelegate.swift */; };
 		715CA2CC215CE8F1004546D2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715CA2CB215CE8F1004546D2 /* ViewController.swift */; };
 		715CA2CF215CE8F1004546D2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 715CA2CD215CE8F1004546D2 /* Main.storyboard */; };
@@ -18,6 +20,8 @@
 /* Begin PBXFileReference section */
 		46935C082312C0D50042A779 /* cloudkitPush.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cloudkitPush.entitlements; sourceTree = "<group>"; };
 		46935C0A2312C0D90042A779 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
+		46E99972232FB4BC000090B5 /* ChangeNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeNotifications.swift; sourceTree = "<group>"; };
+		46E99975232FB854000090B5 /* CKContainer + Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CKContainer + Extension.swift"; sourceTree = "<group>"; };
 		715CA2C6215CE8F1004546D2 /* cloudkitPush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = cloudkitPush.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		715CA2C9215CE8F1004546D2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		715CA2CB215CE8F1004546D2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -47,6 +51,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		46E99974232FB4C5000090B5 /* Sync Management */ = {
+			isa = PBXGroup;
+			children = (
+				46E99972232FB4BC000090B5 /* ChangeNotifications.swift */,
+				46E99975232FB854000090B5 /* CKContainer + Extension.swift */,
+			);
+			path = "Sync Management";
+			sourceTree = "<group>";
+		};
 		715CA2BD215CE8F1004546D2 = {
 			isa = PBXGroup;
 			children = (
@@ -69,6 +82,7 @@
 			children = (
 				46935C082312C0D50042A779 /* cloudkitPush.entitlements */,
 				715CA2C9215CE8F1004546D2 /* AppDelegate.swift */,
+				46E99974232FB4C5000090B5 /* Sync Management */,
 				715CA2CB215CE8F1004546D2 /* ViewController.swift */,
 				715CA2CD215CE8F1004546D2 /* Main.storyboard */,
 				715CA2D0215CE8F1004546D2 /* Assets.xcassets */,
@@ -158,6 +172,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				715CA2CC215CE8F1004546D2 /* ViewController.swift in Sources */,
+				46E99976232FB854000090B5 /* CKContainer + Extension.swift in Sources */,
+				46E99973232FB4BC000090B5 /* ChangeNotifications.swift in Sources */,
 				715CA2CA215CE8F1004546D2 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
