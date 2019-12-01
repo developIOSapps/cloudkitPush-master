@@ -8,24 +8,76 @@
 
 import UIKit
 import UserNotifications
+import CloudKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    
+    var studentsLoggedIn: [String] = ["jack", "harry", "sam", "david"]
+    
+    let recordDidChangeRemotely = Notification.Name("com.pluralsight.cloudKitFundamentals.remoteChangeKey")
+    
+    @IBOutlet weak var studentTableView: UITableView!
     
     @IBOutlet weak var studentPicImageView: UIImageView!
     
     @IBOutlet weak var titlelabel: UILabel!
     
+ 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("in view did load")
-        titlelabel.text = "good bye"
-        // Do any additional setup after loading the view, typically from a nib.
-    }
+        
+        /// Setup the notification Observer
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleRemoteRecordChange),
+                                               name: recordDidChangeRemotely,
+                                               object: nil)
+        
+        /// Setup the TableView
+        studentTableView.delegate = self
+        studentTableView.dataSource = self
+        
+   }
+    
+       func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        studentsLoggedIn.count
+       }
+       
+       func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseid", for: indexPath)
+        cell.textLabel?.text = studentsLoggedIn[indexPath.row]
+        return cell
+       }
+       
+    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+
+     @objc func handleRemoteRecordChange(_ notification: Notification) {
+        
+        guard let queryNotif = CKNotification(fromRemoteNotificationDictionary: notification.userInfo!) as? CKQueryNotification else { return }
+        print("Container Identifier: \(String(describing: queryNotif.containerIdentifier))")
+        print("Record ID Name: \(String(describing: queryNotif.recordID?.recordName))")
+        print("Record ID Name: \(String(describing: queryNotif.recordID?.zoneID.zoneName))")
+        print("QueryNotificationReason: \(queryNotif.queryNotificationReason)")
+
+        
+        print("*********************** In Remote Record Change")
+        
+        let theCurrentU =  queryNotif.recordFields?["currentUser"] as! String
+        print("* * * * * - The current user", theCurrentU)
+        
+        DispatchQueue.main.async {
+            self.studentsLoggedIn.append(theCurrentU)
+            self.studentTableView.reloadData()
+        }
+        
+    }
+     
+
 
 }
 

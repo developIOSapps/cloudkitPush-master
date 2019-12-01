@@ -14,6 +14,8 @@ import UserNotifications
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    
+    var iPadSubscriptionID: String = ""
 
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -142,6 +144,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let notificationInfoSilent: CKNotificationInfo = {
                 let notificationInfoSilent = CKNotificationInfo()
                 notificationInfoSilent.shouldSendContentAvailable = true
+                notificationInfoSilent.desiredKeys = ["currentUser", "userLevel"]
                 return notificationInfoSilent
             }()
             
@@ -159,6 +162,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                  if error != nil {
                      print("* * * * There was an error creating subscription")
                  }
+                print("- - - -  - - -This is the id of the Ipad subscription", savedSubscriptions?.first?.subscriptionID)
+                if let iPadSubscriptionID = savedSubscriptions?.first?.subscriptionID {
+                    self.iPadSubscriptionID = iPadSubscriptionID
+                }
              }
              modifySubscriptionOperation.qualityOfService = .utility
             return modifySubscriptionOperation
@@ -300,8 +307,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
         guard let queryNotif = CKNotification(fromRemoteNotificationDictionary: userInfo) as? CKQueryNotification else { return }
         
         print("Container Identifier: \(String(describing: queryNotif.containerIdentifier))") 
-        print("Record ID Name: \(queryNotif.recordID?.recordName)")
-        print("Record ID Name: \(queryNotif.recordID?.zoneID.zoneName)")
+        print("Record ID Name: \(String(describing: queryNotif.recordID?.recordName))")
+        print("Record ID Name: \(String(describing: queryNotif.recordID?.zoneID.zoneName))")
         print("QueryNotificationReason: \(queryNotif.queryNotificationReason)")
         
         switch queryNotif.queryNotificationReason {
@@ -315,9 +322,19 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
         
 
         dump(queryNotif.recordFields)
-
+        
+//        let theCurrentU =  queryNotif.recordFields?["currentUser"] as! String
+//        print("* * * * * - The current user", theCurrentU)
         
         dump(queryNotif)
+        
+        // this detrmines that it came back from the iPad subscription
+        guard iPadSubscriptionID == queryNotif.subscriptionID else {
+            DispatchQueue.global().async {
+                completionHandler(.noData)
+            }
+            return
+        }
         
         guard let recID =  queryNotif.recordID as? CKRecordID   else {
             fatalError("Error - could not use the record id")
@@ -325,13 +342,22 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
         
         CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.fetch(withRecordID: recID) { (record, error) in
             guard let rec = record, error == nil else {fatalError("error - getting record")}
-            print(rec["title"] as! String)
+            // print(rec["title"] as! String)
             
-            let titl = rec["title"] as! String
+            //let titl = rec["title"] as! String
+            let currentU = rec["currentUser"] as! String
+            print(currentU)
+            
+            let recordDidChangeRemotely = Notification.Name("com.pluralsight.cloudKitFundamentals.remoteChangeKey")
+            NotificationCenter.default.post(name: recordDidChangeRemotely,
+                                            object: self,
+                                            userInfo: userInfo)
+
+            
             
             DispatchQueue.main.async {
                 let vc = self.window?.rootViewController as! ViewController
-                vc.titlelabel.text = titl
+                vc.titlelabel.text = currentU
                 vc.titlelabel.setNeedsDisplay()
                 vc.view.setNeedsDisplay()
                 vc.view.setNeedsLayout()
