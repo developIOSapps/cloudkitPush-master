@@ -150,4 +150,134 @@ extension ViewController: UNUserNotificationCenterDelegate {
     
 }
 
+extension AppDelegate {
+    
+    /*
+     
+     It seems that this is used when tracking all changes from from a  commit point keep things in sync
+     
+     */
+    
+    
+    fileprivate func forTrackingAllSinceLast() {
+        /// Create an instance of the fetchNotificationChangesCompletionBlock class
+        let fetchNotificationChangesOperation = CKFetchNotificationChangesOperation(previousServerChangeToken: nil)
+        
+        /// set the notificationChangedBlock property
+        var recordChanges = [CKRecordID: CKQueryNotificationReason]()
+        fetchNotificationChangesOperation.notificationChangedBlock = { notification in
+            print("* * * we are in the notificationChangedBlock ")
+            let x = notification.subscriptionID
+            print("Subscription id is \(String(describing: x))" ,String(describing: x))
+            
+            guard let n = notification as? CKQueryNotification, let recordID = n.recordID  else { return  }
+            
+            recordChanges[recordID] = n.queryNotificationReason
+        }
+        
+        /// get the CKServerChangeToken
+        fetchNotificationChangesOperation.fetchNotificationChangesCompletionBlock = { (serverChangeToken, error) in
+            print("* * * we are in the fetchNotificationChangesCompletionBlock , and this is the change token \(serverChangeToken.debugDescription)")
+            print(recordChanges.debugDescription)
+            let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
+            for (key, value) in recordChanges {
+                db.fetch(withRecordID: key, completionHandler: { (record, error) in
+                    guard error == nil else {return}
+                    if value == .recordCreated {
+                        print(record?["title"] ?? "nothing")
+                        print(record?.allKeys() ?? "no keys")
+                        print(record?.allTokens() ?? "no tokens")
+                    } else {
+                        print("record not created ")
+                    }
+                })
+            }
+        }
+    }
 
+    
+}
+
+
+// Probably not needed
+extension AppDelegate {
+    fileprivate func registerNotificationNotification() {
+        //      let subscription = CKQuerySubscription(recordType: "Notifications", predicate: NSPredicate(format: "title = 'st01'"), options: .firesOnRecordCreation)
+        let subscription = CKQuerySubscription(recordType: "Notifications",
+                                               predicate: NSPredicate(format: "TRUEPREDICATE"),
+                                               options: [.firesOnRecordCreation, .firesOnRecordDeletion] )
+        
+        let notificationInfoWithAlert: CKNotificationInfo = {
+            let notificationInfoWithAlert = CKNotificationInfo()
+            notificationInfoWithAlert.titleLocalizationKey = "%1$@"
+            notificationInfoWithAlert.titleLocalizationArgs = ["title"]
+            notificationInfoWithAlert.alertLocalizationKey = "%1$@"
+            notificationInfoWithAlert.alertLocalizationArgs = ["content"]
+            notificationInfoWithAlert.shouldBadge = true
+            notificationInfoWithAlert.soundName = "default"
+            return notificationInfoWithAlert
+        }()
+        
+        let notificationInfoSilent: CKNotificationInfo = {
+            let notificationInfoSilent = CKNotificationInfo()
+            notificationInfoSilent.shouldSendContentAvailable = true
+            return notificationInfoSilent
+        }()
+        
+        subscription.notificationInfo = notificationInfoSilent
+        
+        let modifySubscriptionOperation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription],
+                                                                         subscriptionIDsToDelete: nil)
+        modifySubscriptionOperation.modifySubscriptionsCompletionBlock = { (savedSubscriptions, deletedSubscriptionsIDS, error) in
+            // TODO: cache the subscriptions that were saved so it does not need to be recreated over
+            if error != nil {
+                print("* * * * There was an error creating subscription")
+            }
+        }
+        
+        modifySubscriptionOperation.qualityOfService = .utility
+        let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
+        db.add(modifySubscriptionOperation)
+        
+    }
+    
+    
+    fileprivate func registerLoginNotification() {
+        
+        let subscription = CKQuerySubscription(recordType: "Logins", predicate: NSPredicate(format: "TRUEPREDICATE"), options: .firesOnRecordCreation)
+        
+        let notificationInfoWithAlert = CKNotificationInfo()
+        
+        // this will use the 'title' field in the Record type 'notifications' as the title of the push notification
+        //        info.titleLocalizationKey = "%1$@"
+        //        info.titleLocalizationArgs = ["student"]
+        
+        // if you want to use multiple field combined for the title of push notification
+        // info.titleLocalizationKey = "%1$@ %2$@" // if want to add more, the format will be "%3$@" and so on
+        // info.titleLocalizationArgs = ["title", "subtitle"]
+        
+        // this will use the 'content' field in the Record type 'notifications' as the content of the push notification
+        notificationInfoWithAlert.alertLocalizationKey = "%1$@"
+        notificationInfoWithAlert.alertLocalizationArgs = ["student"]
+        
+        // use system default notification sound
+        notificationInfoWithAlert.soundName = "default"
+        notificationInfoWithAlert.shouldSendMutableContent = true
+        
+        let inf = CKNotificationInfo()
+        inf.shouldSendMutableContent = true
+        inf.shouldSendContentAvailable = true
+        subscription.notificationInfo = inf
+        
+        
+        CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.save(subscription, completionHandler: { subscription, error in
+            if error == nil {
+                print(" Subscription saved successfully")
+            } else {
+                print("error saving subscription", error?.localizedDescription)
+            }
+        })
+    }
+    
+
+}

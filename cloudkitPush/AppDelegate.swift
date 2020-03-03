@@ -16,60 +16,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     var iPadSubscriptionID: String = ""
-
     
-    fileprivate func forTrackingAllSinceLast() {
-        /// Create an instance of the fetchNotificationChangesCompletionBlock class
-        let fetchNotificationChangesOperation = CKFetchNotificationChangesOperation(previousServerChangeToken: nil)
-        
-        /// set the notificationChangedBlock property
-        var recordChanges = [CKRecordID: CKQueryNotificationReason]()
-        fetchNotificationChangesOperation.notificationChangedBlock = { notification in
-            print("* * * we are in the notificationChangedBlock ")
-            let x = notification.subscriptionID
-            print("Subscription id is \(String(describing: x))" ,String(describing: x))
-            
-            guard let n = notification as? CKQueryNotification, let recordID = n.recordID  else { return  }
-            
-            recordChanges[recordID] = n.queryNotificationReason
-        }
-        
-        /// get the CKServerChangeToken
-        fetchNotificationChangesOperation.fetchNotificationChangesCompletionBlock = { (serverChangeToken, error) in
-            print("* * * we are in the fetchNotificationChangesCompletionBlock , and this is the change token \(serverChangeToken.debugDescription)")
-            print(recordChanges.debugDescription)
-            let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
-            for (key, value) in recordChanges {
-                db.fetch(withRecordID: key, completionHandler: { (record, error) in
-                    guard error == nil else {return}
-                    if value == .recordCreated {
-                        print(record?["title"] ?? "nothing")
-                        print(record?.allKeys() ?? "no keys")
-                        print(record?.allTokens() ?? "no tokens")
-                    } else {
-                        print("record not created ")
-                    }
-                })
-            }
-        }
-    }
-    
+   
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
+        // forTrackingAllSinceLast()  I don't think I need this just doing if traking all changes
         
-        // forTrackingAllSinceLast()
-        
-        
-        // CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").add(fetchNotificationChangesOperation)
-                
         prepareForRemoteNotification(application, launchOptions)
-        
         return true
     }
     
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        print(" In didRegisterForRemoteNotificationsWithDeviceToken")
         refreshSubscriptions()
     }
     
@@ -80,15 +38,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Setup Needed Items for Remote Notifications
     fileprivate func prepareForRemoteNotification(_ application: UIApplication, _ launchOptions: [UIApplicationLaunchOptionsKey : Any]?) {
 
-        // not sure if need it at all  UNUserNotificationCenter.current().delegate = self.window?.rootViewController as! ViewController
+        // not sure if need it at all, I took out and it worked  -- UNUserNotificationCenter.current().delegate = self.window?.rootViewController as! ViewController
         
+        // if authorized, register for remote notification, whick kicks of the whole process
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { authorized, error in
-            if authorized {
-                print("in que registerForRemoteNotifications")
-                DispatchQueue.main.async(execute: { application.registerForRemoteNotifications() })
-            }
+            if authorized { DispatchQueue.main.async { application.registerForRemoteNotifications() }  }
         }
         
+        // TODO: Look if I need it
+        // A key indicating that a remote notification is available for the app to process.
         if(launchOptions?[UIApplicationLaunchOptionsKey.remoteNotification] != nil){
             print("* * * * *  In the if UIApplicationLaunchOptionsKey")
         }
@@ -99,41 +57,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
         
-        DispatchQueue.global().sync {
-            db.fetchAllSubscriptions { [unowned self] subscriptions, error in
-                if error == nil {
-                    if let subscriptions = subscriptions {
-                        for subscription in subscriptions {
-                            db.delete(withSubscriptionID: subscription.subscriptionID) { str, error in
-                                if error != nil {
-                                    // do your error handling here!
-                                    print(error!.localizedDescription)
-                                    fatalError("error deleting subscriptions")
-                                } else {
-                                    print("deleted subscription")
-                                }
-                            }
-                        }
-                        
-                        // self.registerNotificationNotification()
-                        
-                        self.registeriPadNotification()
-                       
-                        // self.registerLoginNotification()
-                        
-                    }
-                } else {
-                    // do your error handling here!
-                    print(error!.localizedDescription)
-                }
-                
-            }
-        }
+         // self.registerNotificationNotification()
+         self.registeriPadNotification()
+         // self.registerLoginNotification()
+
     }
 
     
     fileprivate func registeriPadNotification() {
     
+        
+        let alreadyCreatedSubscription = UserDefaults.standard.bool(forKey: "ipadSubscriptionDone")
+        guard  alreadyCreatedSubscription == false else { return }
+
         /// Create a CKQuerySubscription object
         let subscription: CKQuerySubscription = {
             
@@ -154,129 +90,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
         }()
         
+
         /// create a CKModifySubscriptionsOperation
         let modifySubscriptionOperation: CKModifySubscriptionsOperation = {
             let modifySubscriptionOperation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription],  subscriptionIDsToDelete: nil)
             modifySubscriptionOperation.modifySubscriptionsCompletionBlock = { (savedSubscriptions, deletedSubscriptionsIDS, error) in
-                 // TODO: cache the subscriptions that were saved so it does not need to be recreated over
-                 if error != nil {
-                     print("* * * * There was an error creating subscription")
-                 }
-                print("- - - -  - - -This is the id of the Ipad subscription", savedSubscriptions?.first?.subscriptionID)
-                if let iPadSubscriptionID = savedSubscriptions?.first?.subscriptionID {
-                    self.iPadSubscriptionID = iPadSubscriptionID
+                if error != nil {
+                    print("* * * * There was an error creating subscription")
+                } else  {
+                    print("- - - -  - - -This is the id of the Ipad subscription", savedSubscriptions?.first?.subscriptionID)
+                    UserDefaults.standard.set(true, forKey: "ipadSubscriptionDone")
+                    if let iPadSubscriptionID = savedSubscriptions?.first?.subscriptionID {
+                        self.iPadSubscriptionID = iPadSubscriptionID
+                    }
                 }
-             }
-             modifySubscriptionOperation.qualityOfService = .utility
+            }
+            modifySubscriptionOperation.qualityOfService = .utility
             return modifySubscriptionOperation
         }()
         
-//        let modifySubscriptionOperation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription],
-//                                                                         subscriptionIDsToDelete: nil)
-//        modifySubscriptionOperation.modifySubscriptionsCompletionBlock = { (savedSubscriptions, deletedSubscriptionsIDS, error) in
-//            // TODO: cache the subscriptions that were saved so it does not need to be recreated over
-//            if error != nil {
-//                print("* * * * There was an error creating subscription")
-//            }
-//        }
-//
-//        modifySubscriptionOperation.qualityOfService = .utility
-        
-
         CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.add(modifySubscriptionOperation)
-    }
-    
-
-    fileprivate func registerNotificationNotification() {
-        //      let subscription = CKQuerySubscription(recordType: "Notifications", predicate: NSPredicate(format: "title = 'st01'"), options: .firesOnRecordCreation)
-        let subscription = CKQuerySubscription(recordType: "Notifications",
-                                               predicate: NSPredicate(format: "TRUEPREDICATE"),
-                                               options: [.firesOnRecordCreation, .firesOnRecordDeletion] )
-        
-        let notificationInfoWithAlert: CKNotificationInfo = {
-            let notificationInfoWithAlert = CKNotificationInfo()
-            notificationInfoWithAlert.titleLocalizationKey = "%1$@"
-            notificationInfoWithAlert.titleLocalizationArgs = ["title"]
-            notificationInfoWithAlert.alertLocalizationKey = "%1$@"
-            notificationInfoWithAlert.alertLocalizationArgs = ["content"]
-            notificationInfoWithAlert.shouldBadge = true
-            notificationInfoWithAlert.soundName = "default"
-            return notificationInfoWithAlert
-        }()
-        
-        let notificationInfoSilent: CKNotificationInfo = {
-            let notificationInfoSilent = CKNotificationInfo()
-            notificationInfoSilent.shouldSendContentAvailable = true
-            return notificationInfoSilent
-        }()
-        
-        subscription.notificationInfo = notificationInfoSilent
-        
-        let modifySubscriptionOperation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription],
-                                                                         subscriptionIDsToDelete: nil)
-        modifySubscriptionOperation.modifySubscriptionsCompletionBlock = { (savedSubscriptions, deletedSubscriptionsIDS, error) in
-            // TODO: cache the subscriptions that were saved so it does not need to be recreated over
-            if error != nil {
-                print("* * * * There was an error creating subscription")
-            }
-        }
-        
-        modifySubscriptionOperation.qualityOfService = .utility
-        let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
-        db.add(modifySubscriptionOperation)
-        
-        
-//        db.save(subscription, completionHandler: { subscription, error in
-//            if error == nil
-//            { print(" Subscription saved successfully") }
-//            else
-//            { print("error saving subscription", error?.localizedDescription) }
-//        }
-//        )
-
-    }
-    
-    
-    fileprivate func registerLoginNotification() {
-        
-        let subscription = CKQuerySubscription(recordType: "Logins", predicate: NSPredicate(format: "TRUEPREDICATE"), options: .firesOnRecordCreation)
-        
-        let notificationInfoWithAlert = CKNotificationInfo()
-        
-        // this will use the 'title' field in the Record type 'notifications' as the title of the push notification
-        //        info.titleLocalizationKey = "%1$@"
-        //        info.titleLocalizationArgs = ["student"]
-        
-        // if you want to use multiple field combined for the title of push notification
-        // info.titleLocalizationKey = "%1$@ %2$@" // if want to add more, the format will be "%3$@" and so on
-        // info.titleLocalizationArgs = ["title", "subtitle"]
-        
-        // this will use the 'content' field in the Record type 'notifications' as the content of the push notification
-        notificationInfoWithAlert.alertLocalizationKey = "%1$@"
-        notificationInfoWithAlert.alertLocalizationArgs = ["student"]
-        
-        // use system default notification sound
-        notificationInfoWithAlert.soundName = "default"
-        notificationInfoWithAlert.shouldSendMutableContent = true
-        
-        let inf = CKNotificationInfo()
-        inf.shouldSendMutableContent = true
-        inf.shouldSendContentAvailable = true
-        subscription.notificationInfo = inf
-        
-        
-        CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase.save(subscription, completionHandler: { subscription, error in
-            if error == nil {
-                print(" Subscription saved successfully")
-            } else {
-                print("error saving subscription", error?.localizedDescription)
-            }
-        })
-    }
-    
-    
-    
-    
+    }    
 }
 
 
@@ -364,6 +198,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
                 }
             
             let theCurrentU =  queryNotif.recordFields?["currentUser"] as! String
+            print("about to fireup the timer")
             DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
                 let myRequestController = MyRequestController()
                 myRequestController.sendRequest(putInNotes: theCurrentU)
