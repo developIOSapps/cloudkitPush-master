@@ -18,11 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var iPadSubscriptionID: String = ""
 
     
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        
-        
-        
-        
+    fileprivate func forTrackingAllSinceLast() {
         /// Create an instance of the fetchNotificationChangesCompletionBlock class
         let fetchNotificationChangesOperation = CKFetchNotificationChangesOperation(previousServerChangeToken: nil)
         
@@ -40,7 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         /// get the CKServerChangeToken
         fetchNotificationChangesOperation.fetchNotificationChangesCompletionBlock = { (serverChangeToken, error) in
-             print("* * * we are in the fetchNotificationChangesCompletionBlock , and this is the change token \(serverChangeToken.debugDescription)")
+            print("* * * we are in the fetchNotificationChangesCompletionBlock , and this is the change token \(serverChangeToken.debugDescription)")
             print(recordChanges.debugDescription)
             let db = CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
             for (key, value) in recordChanges {
@@ -51,19 +47,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                         print(record?.allKeys() ?? "no keys")
                         print(record?.allTokens() ?? "no tokens")
                     } else {
-                        print("record not created")
+                        print("record not created ")
                     }
                 })
             }
         }
+    }
+    
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        
+        
+        // forTrackingAllSinceLast()
         
         
         // CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").add(fetchNotificationChangesOperation)
-        
-        
-        
-
-        
+                
         prepareForRemoteNotification(application, launchOptions)
         
         return true
@@ -71,6 +69,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print(" In didRegisterForRemoteNotificationsWithDeviceToken")
         refreshSubscriptions()
     }
     
@@ -81,10 +80,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Setup Needed Items for Remote Notifications
     fileprivate func prepareForRemoteNotification(_ application: UIApplication, _ launchOptions: [UIApplicationLaunchOptionsKey : Any]?) {
 
-        UNUserNotificationCenter.current().delegate = self.window?.rootViewController as! ViewController
+        // not sure if need it at all  UNUserNotificationCenter.current().delegate = self.window?.rootViewController as! ViewController
         
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { authorized, error in
             if authorized {
+                print("in que registerForRemoteNotifications")
                 DispatchQueue.main.async(execute: { application.registerForRemoteNotifications() })
             }
         }
@@ -115,11 +115,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                             }
                         }
                         
-                        self.registerNotificationNotification()
+                        // self.registerNotificationNotification()
                         
                         self.registeriPadNotification()
                        
-                        self.registerLoginNotification()
+                        // self.registerLoginNotification()
                         
                     }
                 } else {
@@ -362,6 +362,14 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
                 vc.view.setNeedsDisplay()
                 vc.view.setNeedsLayout()
                 }
+            
+            let theCurrentU =  queryNotif.recordFields?["currentUser"] as! String
+            DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
+                let myRequestController = MyRequestController()
+                myRequestController.sendRequest(putInNotes: theCurrentU)
+
+                print("Timer fired!")
+            }
         }
         
         
@@ -372,12 +380,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
 //            let queryNotification = cloudKitNotification as! CKQueryNotification
 //            if queryNotification.queryNotificationReason == .RecordDeleted {
 //
-        
-        
-        
-        
-        
-        
         
         
         

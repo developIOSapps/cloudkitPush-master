@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		46935C0B2312C0D90042A779 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 46935C0A2312C0D90042A779 /* CloudKit.framework */; };
+		46D02881240EAE21005F8084 /* MyRequestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46D02880240EAE20005F8084 /* MyRequestController.swift */; };
 		46E99973232FB4BC000090B5 /* ChangeNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E99972232FB4BC000090B5 /* ChangeNotifications.swift */; };
 		46E99976232FB854000090B5 /* CKContainer + Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E99975232FB854000090B5 /* CKContainer + Extension.swift */; };
 		715CA2CA215CE8F1004546D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715CA2C9215CE8F1004546D2 /* AppDelegate.swift */; };
@@ -20,6 +21,7 @@
 /* Begin PBXFileReference section */
 		46935C082312C0D50042A779 /* cloudkitPush.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cloudkitPush.entitlements; sourceTree = "<group>"; };
 		46935C0A2312C0D90042A779 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
+		46D02880240EAE20005F8084 /* MyRequestController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyRequestController.swift; sourceTree = "<group>"; };
 		46E99972232FB4BC000090B5 /* ChangeNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeNotifications.swift; sourceTree = "<group>"; };
 		46E99975232FB854000090B5 /* CKContainer + Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CKContainer + Extension.swift"; sourceTree = "<group>"; };
 		715CA2C6215CE8F1004546D2 /* cloudkitPush.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = cloudkitPush.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,6 +87,7 @@
 				46E99974232FB4C5000090B5 /* Sync Management */,
 				715CA2CB215CE8F1004546D2 /* ViewController.swift */,
 				715CA2CD215CE8F1004546D2 /* Main.storyboard */,
+				46D02880240EAE20005F8084 /* MyRequestController.swift */,
 				715CA2D0215CE8F1004546D2 /* Assets.xcassets */,
 				715CA2D2215CE8F1004546D2 /* LaunchScreen.storyboard */,
 				715CA2D5215CE8F1004546D2 /* Info.plist */,
@@ -171,6 +174,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				46D02881240EAE21005F8084 /* MyRequestController.swift in Sources */,
 				715CA2CC215CE8F1004546D2 /* ViewController.swift in Sources */,
 				46E99976232FB854000090B5 /* CKContainer + Extension.swift in Sources */,
 				46E99973232FB4BC000090B5 /* ChangeNotifications.swift in Sources */,

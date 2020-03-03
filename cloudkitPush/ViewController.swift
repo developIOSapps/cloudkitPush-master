@@ -86,6 +86,7 @@ extension ViewController: UNUserNotificationCenterDelegate {
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         
+        print("- - - - - - * viewcontroller userNotificationCenter fired")
         let application = UIApplication.shared
         
         if(application.applicationState == .active){
