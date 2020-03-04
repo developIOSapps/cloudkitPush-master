@@ -163,12 +163,13 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
         dump(queryNotif)
         
         // this detrmines that it came back from the iPad subscription
-        guard iPadSubscriptionID == queryNotif.subscriptionID else {
-            DispatchQueue.global().async {
-                completionHandler(.noData)
-            }
-            return
-        }
+//        guard iPadSubscriptionID == queryNotif.subscriptionID else {
+//            DispatchQueue.global().async {
+//                print(" not ipad sub ")
+//                completionHandler(.noData)
+//            }
+//            //return
+//        }
         
         guard let recID =  queryNotif.recordID as? CKRecordID   else {
             fatalError("Error - could not use the record id")
@@ -205,6 +206,13 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
 
                 print("Timer fired!")
             }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 16) {
+//                let myRequestController = MyRequestController()
+//                myRequestController.doNextRequest()
+//
+//                print("Timer2 fired!")
+//            }
+
         }
         
         

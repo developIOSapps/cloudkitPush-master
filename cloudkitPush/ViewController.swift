@@ -22,6 +22,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     @IBOutlet weak var titlelabel: UILabel!
     
+    var tracker = "" {
+        didSet {
+            print("just set it")
+        }
+    }
+    
  
     override func viewDidLoad() {
         super.viewDidLoad()

@@ -8,6 +8,21 @@
 
 import Foundation
 class MyRequestController {
+    
+    var tracker = "" {
+        didSet {
+            print("just set it")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
+                //let myRequestController = MyRequestController()
+                self.doNextRequest()
+
+                //print("Timer2 fired!")
+            }
+
+
+        }
+    }
+
     func sendRequest(putInNotes name: String) {
         /* Configure session, choose between:
            * defaultSessionConfiguration
@@ -47,6 +62,7 @@ class MyRequestController {
                 // Success
                 let statusCode = (response as! HTTPURLResponse).statusCode
                 print("URL Session Task Succeeded: HTTP \(statusCode)")
+                self.tracker = "Y"
             }
             else {
                 // Failure
@@ -56,4 +72,49 @@ class MyRequestController {
         task.resume()
         session.finishTasksAndInvalidate()
     }
+    
+   func doNextRequest()  {
+
+    print("start do next")
+        let sessionConfig = URLSessionConfiguration.default
+            
+            /* Create session, and optionally set a URLSessionDelegate. */
+            let session = URLSession(configuration: sessionConfig, delegate: nil, delegateQueue: nil)
+            
+            /* Create the Request:
+             post Move Device By Updating Note Property (POST https://api.zuludesk.com/devices/01d9c633046fbfba766df508eccb6ed0e6dad548/details)
+             */
+            
+            guard var URL = URL(string: "https://api.zuludesk.com/devices/01d9c633046fbfba766df508eccb6ed0e6dad548/details") else {return}
+            var request = URLRequest(url: URL)
+            request.httpMethod = "POST"
+            
+            // Headers
+            
+            request.addValue("Basic NTM3MjI0NjA6RVBUTlpaVEdYV1U1VEo0Vk5RUDMyWDVZSEpSVjYyMkU=", forHTTPHeaderField: "Authorization")
+            request.addValue("2", forHTTPHeaderField: "X-Server-Protocol-Version")
+            request.addValue("text/plain; charset=utf-8", forHTTPHeaderField: "Content-Type")
+            
+            // Body
+            
+            let bodyStringx = "{\n  \"notes\": \"ZZZ\"\n}"
+            let bodyString =  bodyStringx.replacingOccurrences(of: "ZZZ", with: "Profile-App-1Kiosk - Student Login")
+            request.httpBody = bodyString.data(using: .utf8, allowLossyConversion: true)
+            
+            /* Start a new Task */
+            let task = session.dataTask(with: request, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) -> Void in
+                print("in completion block")
+                if (error == nil) {
+                    // Success
+                    let statusCode = (response as! HTTPURLResponse).statusCode
+                    print("URL Session Task Succeeded: HTTP \(statusCode)")
+                }
+                else {
+                    // Failure
+                    print("URL Session Task Failed: %@", error!.localizedDescription);
+                }
+            })
+            task.resume()
+            session.finishTasksAndInvalidate()
+        }
 }
