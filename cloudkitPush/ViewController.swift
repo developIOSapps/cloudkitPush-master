@@ -33,10 +33,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
         
         /// Setup the notification Observer
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(handleRemoteRecordChange),
-                                               name: recordDidChangeRemotely,
-                                               object: nil)
+//        NotificationCenter.default.addObserver(self,
+//                                               selector: #selector(handleRemoteRecordChange),
+//                                               name: recordDidChangeRemotely,
+//                                               object: nil)
         
         /// Setup the TableView
         studentTableView.delegate = self

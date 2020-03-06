@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		46935C0B2312C0D90042A779 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 46935C0A2312C0D90042A779 /* CloudKit.framework */; };
+		46AFF299241285FF009D5EE2 /* DeviceCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AFF297241285FF009D5EE2 /* DeviceCollectionViewCell.swift */; };
+		46AFF29A241285FF009D5EE2 /* DeviceCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AFF298241285FF009D5EE2 /* DeviceCollectionViewController.swift */; };
+		46AFF29C2412861A009D5EE2 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AFF29B2412861A009D5EE2 /* Device.swift */; };
 		46D02881240EAE21005F8084 /* MyRequestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46D02880240EAE20005F8084 /* MyRequestController.swift */; };
 		46E99973232FB4BC000090B5 /* ChangeNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E99972232FB4BC000090B5 /* ChangeNotifications.swift */; };
 		46E99976232FB854000090B5 /* CKContainer + Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E99975232FB854000090B5 /* CKContainer + Extension.swift */; };
@@ -21,6 +24,9 @@
 /* Begin PBXFileReference section */
 		46935C082312C0D50042A779 /* cloudkitPush.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cloudkitPush.entitlements; sourceTree = "<group>"; };
 		46935C0A2312C0D90042A779 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
+		46AFF297241285FF009D5EE2 /* DeviceCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceCollectionViewCell.swift; sourceTree = "<group>"; };
+		46AFF298241285FF009D5EE2 /* DeviceCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceCollectionViewController.swift; sourceTree = "<group>"; };
+		46AFF29B2412861A009D5EE2 /* Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
 		46D02880240EAE20005F8084 /* MyRequestController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyRequestController.swift; sourceTree = "<group>"; };
 		46E99972232FB4BC000090B5 /* ChangeNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeNotifications.swift; sourceTree = "<group>"; };
 		46E99975232FB854000090B5 /* CKContainer + Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CKContainer + Extension.swift"; sourceTree = "<group>"; };
@@ -83,6 +89,9 @@
 			isa = PBXGroup;
 			children = (
 				46935C082312C0D50042A779 /* cloudkitPush.entitlements */,
+				46AFF297241285FF009D5EE2 /* DeviceCollectionViewCell.swift */,
+				46AFF298241285FF009D5EE2 /* DeviceCollectionViewController.swift */,
+				46AFF29B2412861A009D5EE2 /* Device.swift */,
 				715CA2C9215CE8F1004546D2 /* AppDelegate.swift */,
 				46E99974232FB4C5000090B5 /* Sync Management */,
 				715CA2CB215CE8F1004546D2 /* ViewController.swift */,
@@ -174,11 +183,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				46AFF299241285FF009D5EE2 /* DeviceCollectionViewCell.swift in Sources */,
 				46D02881240EAE21005F8084 /* MyRequestController.swift in Sources */,
 				715CA2CC215CE8F1004546D2 /* ViewController.swift in Sources */,
 				46E99976232FB854000090B5 /* CKContainer + Extension.swift in Sources */,
 				46E99973232FB4BC000090B5 /* ChangeNotifications.swift in Sources */,
+				46AFF29A241285FF009D5EE2 /* DeviceCollectionViewController.swift in Sources */,
 				715CA2CA215CE8F1004546D2 /* AppDelegate.swift in Sources */,
+				46AFF29C2412861A009D5EE2 /* Device.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -326,6 +338,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = MZ552MTEJZ;
 				INFOPLIST_FILE = cloudkitPush/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -345,6 +358,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = MZ552MTEJZ;
 				INFOPLIST_FILE = cloudkitPush/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

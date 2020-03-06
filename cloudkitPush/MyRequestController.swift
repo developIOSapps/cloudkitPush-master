@@ -7,7 +7,13 @@
 //
 
 import Foundation
+import CloudKit
+
 class MyRequestController {
+    
+       var dbs : CKDatabase {
+           return CKContainer(identifier: "iCloud.com.dia.cloudKitExample.open").publicCloudDatabase
+       }
     
     var tracker = "" {
         didSet {
@@ -108,6 +114,7 @@ class MyRequestController {
                     // Success
                     let statusCode = (response as! HTTPURLResponse).statusCode
                     print("URL Session Task Succeeded: HTTP \(statusCode)")
+                    self.upDateRecord(studentID: nil, appID: "Student Login")
                 }
                 else {
                     // Failure
@@ -117,4 +124,46 @@ class MyRequestController {
             task.resume()
             session.finishTasksAndInvalidate()
         }
+    
+    fileprivate func upDateRecord(studentID: String?, appID: String)  {
+        let recordID = CKRecord.ID(recordName: "01d9c633046fbfba766df508eccb6ed0e6dad548")
+
+        dbs.fetch(withRecordID: recordID) { record, error in
+
+            if let record = record, error == nil {
+                
+                if let studentID = studentID {
+                    let theStudentID = CKRecord.ID(recordName: studentID )
+                    let studentRef = CKRecord.Reference(recordID: theStudentID, action: .none)
+                    record["studentID"] = studentRef as CKRecord.Reference
+                }
+
+                let theAppID = CKRecord.ID(recordName: appID )
+                let appRef = CKRecord.Reference(recordID: theAppID, action: .none)
+                record["appID"] = appRef as CKRecord.Reference
+
+                
+                
+//                record["currentUser"] = NSString("zzzz")
+//                record["identifier"] =  NSString("oooooo")
+//                record["userLevel"] =   NSString("l01")
+
+                self.dbs.save(record) { (savedRecord, error) in
+                    if let _ = savedRecord, error == nil{
+                        print("Record Saved")
+                        
+                        let recordDidChangeRemotely = Notification.Name("com.pluralsight.cloudKitFundamentals.remoteChangeKey")
+                        NotificationCenter.default.post(name: recordDidChangeRemotely,
+                                                        object: self,
+                                                        userInfo: nil)
+
+
+                    } else {
+                        print("received error")
+                    }
+                }
+            }
+        }
+    }
+
 }

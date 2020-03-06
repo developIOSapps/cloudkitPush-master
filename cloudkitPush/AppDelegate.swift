@@ -117,10 +117,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate: UNUserNotificationCenterDelegate{
 
    
-    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        
-        print("* * * * * didReceiveRemoteNotification - We received a remote notification")
-
+    fileprivate func debugUserInfo(_ userInfo: [AnyHashable : Any]) {
+    /// This is just to be avle to debug and see what is in userInfo
         if let ckDict = userInfo["ck"] as? [AnyHashable : Any] {
             if let qryDict = ckDict["qry"] as? [AnyHashable : Any] {
                 for (key, value) in qryDict {
@@ -135,17 +133,16 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
             }
         }
         dump(userInfo)
-//          NSLog("Save error: %@", "hello")
-
-
-        guard let queryNotif = CKNotification(fromRemoteNotificationDictionary: userInfo) as? CKQueryNotification else { return }
+    }
+    
+    
+    fileprivate func debugQueryNotification(_ queryNotification: CKQueryNotification) {
+        print("Container Identifier: \(String(describing: queryNotification.containerIdentifier))")
+        print("Record ID Name: \(String(describing: queryNotification.recordID?.recordName))")
+        print("Record ID Name: \(String(describing: queryNotification.recordID?.zoneID.zoneName))")
+        print("QueryNotificationReason: \(queryNotification.queryNotificationReason)")
         
-        print("Container Identifier: \(String(describing: queryNotif.containerIdentifier))") 
-        print("Record ID Name: \(String(describing: queryNotif.recordID?.recordName))")
-        print("Record ID Name: \(String(describing: queryNotif.recordID?.zoneID.zoneName))")
-        print("QueryNotificationReason: \(queryNotif.queryNotificationReason)")
-        
-        switch queryNotif.queryNotificationReason {
+        switch queryNotification.queryNotificationReason {
         case .recordCreated:
             print(" * * * Record Created")
         case .recordDeleted:
@@ -154,13 +151,23 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
             print(" * * * Record Updated")
         }
         
+        
+        dump(queryNotification.recordFields)
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        
+        print("* * * * * didReceiveRemoteNotification - We received a remote notification")
+        debugUserInfo(userInfo)
 
-        dump(queryNotif.recordFields)
+        guard let queryNotification = CKNotification(fromRemoteNotificationDictionary: userInfo) as? CKQueryNotification else { return }
+        
+        debugQueryNotification(queryNotification)
         
 //        let theCurrentU =  queryNotif.recordFields?["currentUser"] as! String
 //        print("* * * * * - The current user", theCurrentU)
         
-        dump(queryNotif)
+        dump(queryNotification)
         
         // this detrmines that it came back from the iPad subscription
 //        guard iPadSubscriptionID == queryNotif.subscriptionID else {
@@ -171,7 +178,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
 //            //return
 //        }
         
-        guard let recID =  queryNotif.recordID as? CKRecordID   else {
+        
+        guard let recID =  queryNotification.recordID as? CKRecordID else {
             fatalError("Error - could not use the record id")
         }
         
@@ -191,14 +199,16 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
             
             
             DispatchQueue.main.async {
-                let vc = self.window?.rootViewController as! ViewController
-                vc.titlelabel.text = currentU
-                vc.titlelabel.setNeedsDisplay()
-                vc.view.setNeedsDisplay()
-                vc.view.setNeedsLayout()
+                let navvc = self.window?.rootViewController as! UINavigationController
+                let vc = navvc.topViewController  as! DeviceCollectionViewController
+                // let vc = self.window?.rootViewController as! ViewController
+                // vc.titlelabel.text = currentU
+                // vc.titlelabel.setNeedsDisplay()
+                // vc.view.setNeedsDisplay()
+                // vc.view.setNeedsLayout()
                 }
             
-            let theCurrentU =  queryNotif.recordFields?["currentUser"] as! String
+            let theCurrentU =  queryNotification.recordFields?["currentUser"] as! String
             print("about to fireup the timer")
             DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
                 let myRequestController = MyRequestController()
@@ -206,12 +216,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
 
                 print("Timer fired!")
             }
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 16) {
-//                let myRequestController = MyRequestController()
-//                myRequestController.doNextRequest()
-//
-//                print("Timer2 fired!")
-//            }
 
         }
         
@@ -220,8 +224,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate{
         
 //        let cloudKitNotification = CKNotification(fromRemoteNotificationDictionary: userInfo as! [String : NSObject])
 //        if cloudKitNotification.notificationType == .Query {
-//            let queryNotification = cloudKitNotification as! CKQueryNotification
-//            if queryNotification.queryNotificationReason == .RecordDeleted {
+//            let queryNotificationOBJ = cloudKitNotification as! CKQueryNotification
+//            if queryNotificationOBJ.queryNotificationReason == .RecordDeleted {
 //
         
         
